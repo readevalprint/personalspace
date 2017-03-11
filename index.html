@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset=utf-8>
+
+
+
+    <title>Personal Space: The Game</title>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+
+    <style>
+      body { margin: 0; }
+      canvas { width: 100%; height: 100% }
+      .panel { width: 100%; height: 100% }
+    </style>
+    <script src="js/three.js"></script>
+    <script src="js/controls/DeviceOrientationControls.js"></script>
+  </head>
+  <body>
+    <script>
+      var user;
+
+      navigator.vibrate = navigator.vibrate || navigator.webkitVibrate || navigator.mozVibrate || navigator.msVibrate;
+
+      function ndistance(a, b) {
+        var total = 0, diff;
+        for (i = 0; i < a.length; i++) {
+          diff = b[i] - a[i];
+          total += diff * diff;
+        }
+        return Math.sqrt(total);
+      }
+      function start(){
+        var container, camera, scene, renderer, controls, geometry, mesh, moved;
+        moved = 0;
+        scene = new THREE.Scene();
+        var camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+
+        renderer = new THREE.WebGLRenderer();
+        renderer.setSize( window.innerWidth, window.innerHeight );
+        document.body.appendChild( renderer.domElement );
+        geometry = new THREE.BoxGeometry( 1, 1, 1 );
+
+
+        var material = new THREE.MeshBasicMaterial( { color: "hsl(.3, 100%, 50%)" } );
+        var h = .3
+
+
+        var cube = new THREE.Mesh( geometry, material );
+        scene.add( cube );
+
+        camera.position.z = 3;
+        controls = new THREE.DeviceOrientationControls( cube );
+
+
+        var state = 'start';
+        var lastQuaternion = null;
+        function reset(){
+          // super ghetto...
+          h = .3
+
+        }
+        function render() {
+          requestAnimationFrame( render );
+          controls.update();
+          if (lastQuaternion) {
+            moved = ndistance(lastQuaternion.toArray(),  controls.object.quaternion.toArray())
+          }
+
+          if(moved> 0.0001 && h>0) {
+            h -= moved / 5;
+            if(h < 0) {
+              h = 0;
+              navigator.vibrate(600);
+
+              reset();
+            }
+            cube.material.color.setHSL( h, 1 ,.5)
+          }
+          lastQuaternion = controls.object.quaternion.clone();
+          renderer.render( scene, camera );
+        }
+        render();
+
+      }
+
+      start()
+    </script>
+  </body>
+</html>
